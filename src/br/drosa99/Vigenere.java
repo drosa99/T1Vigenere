@@ -1,5 +1,6 @@
 package br.drosa99;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -8,13 +9,15 @@ public class Vigenere {
 
     private static List<String> letras = Arrays.asList("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z");
     private static double icPt = 0.072723;
-    private static int ic = 0;
+    private static long ic = 0;
     //private static List<String> textoCifrado = Arrays.asList("a", "t", "a", "c", "a", "r", "a", "o");
-    private static List<String> textoCifrado = Arrays.asList("l", "b", "l", "k", "l", "z", "l", "w");
+//    private static List<String> textoCifrado = Arrays.asList("l", "b", "l", "k", "l", "z", "l", "w");
+    private static List<String> textoCifrado = new ArrayList<>();
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 	    //TODO fazer leitura do arquivo
+        leituraArquivo();
         System.out.println("Chave encontrada " + encontrarChave());
     }
 
@@ -81,7 +84,7 @@ public class Vigenere {
     }
 
     private static double getIc(List<String> string) {
-        int tamanho = 0;
+        long tamanho = 0;
         double fi = 0;
 
         for (int i = 0; i < letras.size(); i++) {
@@ -92,9 +95,14 @@ public class Vigenere {
                 fi += qtdOcorrencias * (qtdOcorrencias - 1);
             }
         }
-        double n = tamanho * (tamanho - 1);
+        long n = tamanho * (tamanho - 1);
         double v = fi / n;
         return v;
+//        String result = "";
+//        for (String s: string) {
+//            result = result.concat(s);
+//        }
+//        return calculate(result);
     }
 
     private static String getLetraMaisFrequente(List<String> string){
@@ -112,8 +120,59 @@ public class Vigenere {
         return maisComum;
     }
 
+    private static void leituraArquivo() throws IOException {
+        File f = new File("files/cipher1.txt");
+        BufferedReader in = new BufferedReader(new FileReader(f));
+        String st = in.readLine();
+        List<String> ar = new ArrayList<>();
+        for (int i = 0 ; i < st.length() ; i++) {
+            char aux = st.charAt(i);
+            textoCifrado.add(Character.toString(aux));
+        }
+
+    }
+
     //TODO fazer leitura de arquivo
     //TODO suporta para ingles
+
+
+    public static double calculate(String s){
+
+        int i;
+        int N = 0;
+        double sum = 0.0;
+        double total = 0.0;
+        s = s.toUpperCase();
+
+        //initialize array of values to count frequency of each letter
+        int[] values = new int[26];
+        for(i=0; i<26; i++){
+            values[i] = 0;
+        }
+
+        //calculate frequency of each letter in s
+        int ch;
+        for(i=0; i<s.length(); i++){
+            ch = s.charAt(i)-65;
+            if(ch>=0 && ch<26){
+                values[ch]++;
+                N++;
+            }
+        }
+
+        //calculate the sum of each frequency
+        for(i=0; i<26; i++){
+            ch = values[i];
+            sum = sum + (ch * (ch-1));
+        }
+
+        //divide by N(N-1)
+        total = sum/(N*(N-1));
+
+        //return the result
+        return total;
+
+    }
 
 
 }
