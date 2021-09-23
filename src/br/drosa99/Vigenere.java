@@ -9,12 +9,13 @@ public class Vigenere {
     private static List<String> letras = Arrays.asList("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z");
     private static double icPt = 0.072723;
     private static int ic = 0;
-    private static List<String> textoCifrado = Arrays.asList("a", "b", "c", "d");
+    //private static List<String> textoCifrado = Arrays.asList("a", "t", "a", "c", "a", "r", "a", "o");
+    private static List<String> textoCifrado = Arrays.asList("l", "b", "l", "k", "l", "z", "l", "w");
 
 
     public static void main(String[] args) {
 	    //TODO fazer leitura do arquivo
-        encontrarChave();
+        System.out.println("Chave encontrada " + encontrarChave());
     }
 
     public static String encontrarChave(){
@@ -22,9 +23,12 @@ public class Vigenere {
         String chaveCompleta = "";
         List<String> letrasFrequentes = new ArrayList<>();
         List<Integer> deslocamentos = new ArrayList<>();
+        int tamChaveProvavel = 1;
+        double menorDiff = 10.0;
 
-        for(int i = tamanhoChave; i <= letras.size(); i ++){
-            List<List<String>> substrings = getSubstrings(i);
+        int max = Math.min(textoCifrado.size(), letras.size());
+        for(int i = tamanhoChave; i <= max; i ++){
+            List<List<String>> substrings = getSubstrings(i );
 
             System.out.println("- Tamanho da chave: " + i);
 
@@ -34,9 +38,12 @@ public class Vigenere {
                 System.out.println("  "  + substringIc + " ==> " + j);
                 System.out.println("  substringIC-icPT: " +  (substringIc - icPt) + " ==> " + j);
                 double localDiff = substringIc - icPt;
-                if (localDiff <= 0.009 && localDiff > 0) {
+                if (localDiff <= 0.009 && localDiff > 0) { //TODO ver se isso ta certo
+                //if(localDiff > 0 && localDiff < menorDiff) {
                     tamanhoChave = i;
                     break;
+                  //  tamChaveProvavel = i;
+                    //menorDiff = localDiff;
                 }
             }
             if (tamanhoChave != 1) break;
@@ -66,7 +73,6 @@ public class Vigenere {
         for (int i = 0; i < tamanhoChave; i++) {
             substrings.add(new ArrayList<>());
         }
-        //TODO refactor aqui pra botar de uma vez ou inicializar os arrays antes
         for (int index = 0; index < textoCifrado.size(); index ++){
             int posicao = index % tamanhoChave;
             substrings.get(posicao).add(textoCifrado.get(index));
@@ -76,7 +82,7 @@ public class Vigenere {
 
     private static double getIc(List<String> string) {
         int tamanho = 0;
-        int fi = 0;
+        double fi = 0;
 
         for (int i = 0; i < letras.size(); i++) {
             String letra = letras.get(i);
@@ -86,15 +92,16 @@ public class Vigenere {
                 fi += qtdOcorrencias * (qtdOcorrencias - 1);
             }
         }
-        int n = tamanho * (tamanho - 1);
-        return fi/n;
+        double n = tamanho * (tamanho - 1);
+        double v = fi / n;
+        return v;
     }
 
     private static String getLetraMaisFrequente(List<String> string){
         String maisComum = "";
         long maiorQtdOcorrencias = -1;
         long ocorrencias = 0;
-        for (int i = 0; i < string.size(); i++) {
+        for (int i = 0; i < letras.size(); i++) {
             String letra = letras.get(i);
             ocorrencias = string.stream().filter(it -> it.equals(letra)).count();
             if (ocorrencias > maiorQtdOcorrencias) {
@@ -104,4 +111,9 @@ public class Vigenere {
         }
         return maisComum;
     }
+
+    //TODO fazer leitura de arquivo
+    //TODO suporta para ingles
+
+
 }
