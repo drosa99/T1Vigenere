@@ -7,12 +7,12 @@ import java.util.List;
 
 public class Vigenere {
 
-    private static List<String> letras = Arrays.asList("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z");
+    private static String[] letras = new String[]{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"};
     private static double icPt = 0.072723;
     private static long ic = 0;
     //private static List<String> textoCifrado = Arrays.asList("a", "t", "a", "c", "a", "r", "a", "o");
 //    private static List<String> textoCifrado = Arrays.asList("l", "b", "l", "k", "l", "z", "l", "w");
-    private static List<String> textoCifrado = new ArrayList<>();
+    private static String[] textoCifrado;
 
 
     public static void main(String[] args){
@@ -23,6 +23,27 @@ public class Vigenere {
             System.out.println("Erro ao ler arquivo do texto criptografado.");
             System.exit(0);
         }
+
+//        String[] b = new String[textoCifrado.size()];
+//        String[] c = new String[textoCifrado.size()];
+//        int index = 0;
+//
+//        long inicio = System.currentTimeMillis();
+//        for (String l: textoCifrado) {
+//            b[index] = l;
+//            index++;
+//        }
+//        long fim = System.currentTimeMillis();
+//        System.out.println("List -> Tempo em milis " + (fim - inicio));
+//
+//        inicio = System.currentTimeMillis();
+//        for (int i = 0; i < b.length; i++) {
+//            c[i] = b[i];
+//        }
+//        fim = System.currentTimeMillis();
+//        System.out.println("Array -> Tempo em milis " + (fim - inicio));
+
+
         String chave = encontrarChave();
         String textoDescriptografado = descriptografar(chave);
         System.out.println(" O texto foi descriptografado com sucesso");
@@ -43,7 +64,7 @@ public class Vigenere {
         int tamChaveProvavel = 1;
         double menorDiff = 10.0;
 
-        int max = Math.min(textoCifrado.size(), letras.size());
+        int max = Math.min(textoCifrado.length, letras.length);
         for(int i = tamanhoChave; i <= max; i ++){
             List<List<String>> substrings = getSubstrings(i );
 
@@ -70,13 +91,13 @@ public class Vigenere {
 
         for (int i = 0; i < substringsFinal.size(); i++) {
             letrasFrequentes.add(getLetraMaisFrequente(substringsFinal.get(i)));
-            int diff = letras.indexOf(letrasFrequentes.get(i)) - letras.indexOf("a"); //TODO trocar o "a" por letra mais frequente pra usar
+            int diff = Arrays.asList(letras).indexOf(letrasFrequentes.get(i)) - Arrays.asList(letras).indexOf("a"); //TODO trocar o "a" por letra mais frequente pra usar
             if(diff < 0) {
                 diff += 26;
             }
 
             deslocamentos.add(diff);
-            chaveCompleta = chaveCompleta.concat(letras.get(diff));
+            chaveCompleta = chaveCompleta.concat(letras[diff]);
         }
 
         System.out.println("Letras mais frequentes das substrings: " + letrasFrequentes);
@@ -90,9 +111,9 @@ public class Vigenere {
         for (int i = 0; i < tamanhoChave; i++) {
             substrings.add(new ArrayList<>());
         }
-        for (int index = 0; index < textoCifrado.size(); index ++){
+        for (int index = 0; index < textoCifrado.length; index ++){
             int posicao = index % tamanhoChave;
-            substrings.get(posicao).add(textoCifrado.get(index));
+            substrings.get(posicao).add(textoCifrado[index]);
         }
         return substrings;
     }
@@ -101,8 +122,8 @@ public class Vigenere {
         long tamanho = 0;
         double fi = 0;
 
-        for (int i = 0; i < letras.size(); i++) {
-            String letra = letras.get(i);
+        for (int i = 0; i < letras.length; i++) {
+            String letra = letras[i];
             long qtdOcorrencias = string.stream().filter(it -> it.equals(letra)).count();
             if(qtdOcorrencias > 0){
                 tamanho += qtdOcorrencias;
@@ -123,8 +144,8 @@ public class Vigenere {
         String maisComum = "";
         long maiorQtdOcorrencias = -1;
         long ocorrencias = 0;
-        for (int i = 0; i < letras.size(); i++) {
-            String letra = letras.get(i);
+        for (int i = 0; i < letras.length; i++) {
+            String letra = letras[i];
             ocorrencias = string.stream().filter(it -> it.equals(letra)).count();
             if (ocorrencias > maiorQtdOcorrencias) {
                 maisComum = letra;
@@ -138,28 +159,32 @@ public class Vigenere {
         File f = new File("files/cipher1.txt");
         BufferedReader in = new BufferedReader(new FileReader(f));
         String st = in.readLine();
-        List<String> ar = new ArrayList<>();
+        textoCifrado = new String[st.length()];
         for (int i = 0 ; i < st.length() ; i++) {
             char aux = st.charAt(i);
-            textoCifrado.add(Character.toString(aux));
+            textoCifrado[i] = (Character.toString(aux));
         }
     }
 
     private static String descriptografar(String chave) {
+        long inicio = System.currentTimeMillis();
         String descriptografado = "";
         int indexChave = 0;
         for (String l: textoCifrado) {
             if(indexChave == chave.length()) indexChave = 0;
 
-            int letraDescriptografada = letras.indexOf(l) - letras.indexOf(String.valueOf(chave.charAt(indexChave)));
+            int letraDescriptografada = Arrays.asList(letras).indexOf(l) - Arrays.asList(letras).indexOf(String.valueOf(chave.charAt(indexChave)));
 
             if(letraDescriptografada < 0) {
-                letraDescriptografada += letras.size();
+                letraDescriptografada += letras.length;
             }
 
-            descriptografado = descriptografado.concat(letras.get(letraDescriptografada));
+            descriptografado = descriptografado.concat(letras[letraDescriptografada]);
             indexChave++;
         }
+
+        long fim = System.currentTimeMillis();
+        System.out.println("Tempo em milis " + (fim - inicio));
         return descriptografado;
     }
 
