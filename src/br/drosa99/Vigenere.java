@@ -15,10 +15,24 @@ public class Vigenere {
     private static List<String> textoCifrado = new ArrayList<>();
 
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args){
 	    //TODO fazer leitura do arquivo
-        leituraArquivo();
-        System.out.println("Chave encontrada " + encontrarChave());
+        try {
+            leituraArquivo();
+        } catch (IOException e) {
+            System.out.println("Erro ao ler arquivo do texto criptografado.");
+            System.exit(0);
+        }
+        String chave = encontrarChave();
+        String textoDescriptografado = descriptografar(chave);
+        System.out.println(" O texto foi descriptografado com sucesso");
+        try {
+            escreverTexto(textoDescriptografado);
+        } catch (IOException e) {
+            System.out.println(" Erro ao escrever arquivo com o texto descriptografado.");
+            System.exit(0);
+        }
+        System.out.println(" --- FIM ---- ");
     }
 
     public static String encontrarChave(){
@@ -67,7 +81,7 @@ public class Vigenere {
 
         System.out.println("Letras mais frequentes das substrings: " + letrasFrequentes);
         System.out.println("Deslocamentos por substring:" + deslocamentos);
-        System.out.println("Chave encontrada" + chaveCompleta);
+        System.out.println("Chave encontrada " + chaveCompleta);
         return chaveCompleta;
     }
 
@@ -129,8 +143,34 @@ public class Vigenere {
             char aux = st.charAt(i);
             textoCifrado.add(Character.toString(aux));
         }
-
     }
+
+    private static String descriptografar(String chave) {
+        String descriptografado = "";
+        int indexChave = 0;
+        for (String l: textoCifrado) {
+            if(indexChave == chave.length()) indexChave = 0;
+
+            int letraDescriptografada = letras.indexOf(l) - letras.indexOf(String.valueOf(chave.charAt(indexChave)));
+
+            if(letraDescriptografada < 0) {
+                letraDescriptografada += letras.size();
+            }
+
+            descriptografado = descriptografado.concat(letras.get(letraDescriptografada));
+            indexChave++;
+        }
+        return descriptografado;
+    }
+
+    private static void escreverTexto(String texto) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new FileWriter("descriptografia.txt"));
+        writer.write(texto);
+        writer.close();
+    }
+
+
+
 
     //TODO fazer leitura de arquivo
     //TODO suporta para ingles
