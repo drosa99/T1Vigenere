@@ -6,18 +6,17 @@ import java.util.*;
 public class Vigenere {
 
     private static String[] letras = new String[]{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"};
-    //private static HashMap<String, Integer> letrasMap = (HashMap<String, Integer>) Map.ofEntries(Map.entry("a", 0), Map.entry("b", 1));
     private static HashMap<String, Integer> letrasMap = new HashMap<>();
 
-    private static double icPt = 0.072723;
-    private static long ic = 0;
-    //private static List<String> textoCifrado = Arrays.asList("a", "t", "a", "c", "a", "r", "a", "o");
-//    private static List<String> textoCifrado = Arrays.asList("l", "b", "l", "k", "l", "z", "l", "w");
+    private static final double icPt = 0.072723;
     private static String[] textoCifrado;
 
     //TODO fazer suporte para ingles
 
     public static void main(String[] args) {
+
+        String filename = args.length == 1 ? args[0] : "cipher1.txt";
+
 
         for (int i = 0; i < letras.length; i++) {
             letrasMap.put(letras[i], i);
@@ -25,34 +24,15 @@ public class Vigenere {
 
         long inicio = System.currentTimeMillis();
         try {
-            leituraArquivo();
+            leituraArquivo(filename);
         } catch (IOException e) {
             System.out.println("Erro ao ler arquivo do texto criptografado.");
             System.exit(0);
         }
 
-//        String[] b = new String[textoCifrado.size()];
-//        String[] c = new String[textoCifrado.size()];
-//        int index = 0;
-//
-//        long inicio = System.currentTimeMillis();
-//        for (String l: textoCifrado) {
-//            b[index] = l;
-//            index++;
-//        }
-//        long fim = System.currentTimeMillis();
-//        System.out.println("List -> Tempo em milis " + (fim - inicio));
-//
-//        inicio = System.currentTimeMillis();
-//        for (int i = 0; i < b.length; i++) {
-//            c[i] = b[i];
-//        }
-//        fim = System.currentTimeMillis();
-//        System.out.println("Array -> Tempo em milis " + (fim - inicio));
-
 
         String chave = encontrarChave();
-        String textoDescriptografado = descriptografar(chave);
+        String textoDescriptografado = decriptografar(chave);
         System.out.println(" O texto foi descriptografado com sucesso");
         try {
             escreverTexto(textoDescriptografado);
@@ -71,37 +51,33 @@ public class Vigenere {
         String chaveCompleta = "";
         List<String> letrasFrequentes = new ArrayList<>();
         List<Integer> deslocamentos = new ArrayList<>();
-        int tamChaveProvavel = 1;
-        double menorDiff = 10.0;
 
         int max = Math.min(textoCifrado.length, letras.length);
         for (int i = tamanhoChave; i <= max; i++) {
-            List<List<String>> substrings = getSubstrings(i);
+            List<List<String>> substrings = buscarSubstrings(i);
 
             System.out.println("- Tamanho da chave: " + i);
 
             //calcula IC para todas as substrings
             for (int j = 0; j < substrings.size(); j++) {
-                double substringIc = getIc(substrings.get(j));
-                System.out.println("  " + substringIc + " ==> " + j);
-                System.out.println("  substringIC-icPT: " + (substringIc - icPt) + " ==> " + j);
+                double substringIc = buscarIC(substrings.get(j));
+//                System.out.println("  " + substringIc + " ==> " + j);
+//                System.out.println("  substringIC-icPT: " + (substringIc - icPt) + " ==> " + j);
                 double localDiff = substringIc - icPt;
                 if (localDiff <= 0.009 && localDiff > 0) { //TODO ver se isso ta certo
-                    //if(localDiff > 0 && localDiff < menorDiff) {
                     tamanhoChave = i;
                     break;
-                    //  tamChaveProvavel = i;
-                    //menorDiff = localDiff;
                 }
             }
             if (tamanhoChave != 1) break;
         }
 
-        List<List<String>> substringsFinal = getSubstrings(tamanhoChave);
+        List<List<String>> substringsFinal = buscarSubstrings(tamanhoChave);
 
         for (int i = 0; i < substringsFinal.size(); i++) {
-            letrasFrequentes.add(getLetraMaisFrequente(substringsFinal.get(i)));
-            int diff = letrasMap.get(letrasFrequentes.get(i)) - letrasMap.get("a"); //TODO trocar o "a" por letra mais frequente pra usar
+            String letraMaisFrequente = buscarLetraMaisFrequente(substringsFinal.get(i));
+            letrasFrequentes.add(letraMaisFrequente);
+            int diff = letrasMap.get(letraMaisFrequente) - letrasMap.get("a");
             if (diff < 0) {
                 diff += 26;
             }
@@ -116,8 +92,7 @@ public class Vigenere {
         return chaveCompleta;
     }
 
-    private static List<List<String>> getSubstrings(int tamanhoChave) {
-        //TODO trocar pra List<String[]> e ver se melhora performance
+    private static List<List<String>> buscarSubstrings(int tamanhoChave) {
         List<List<String>> substrings = new ArrayList<>();
         for (int i = 0; i < tamanhoChave; i++) {
             substrings.add(new ArrayList<>());
@@ -129,7 +104,7 @@ public class Vigenere {
         return substrings;
     }
 
-    private static double getIc(List<String> string) {
+    private static double buscarIC(List<String> string) {
         long tamanho = 0;
         double fi = 0;
 
@@ -144,19 +119,13 @@ public class Vigenere {
         long n = tamanho * (tamanho - 1);
         double v = fi / n;
         return v;
-//        String result = "";
-//        for (String s: string) {
-//            result = result.concat(s);
-//        }
-//        return calculate(result);
     }
 
-    private static String getLetraMaisFrequente(List<String> string) {
+    private static String buscarLetraMaisFrequente(List<String> string) {
         String maisComum = "";
         long maiorQtdOcorrencias = -1;
         long ocorrencias = 0;
-        for (int i = 0; i < letras.length; i++) {
-            String letra = letras[i];
+        for (String letra : letras) {
             ocorrencias = string.stream().filter(it -> it.equals(letra)).count();
             if (ocorrencias > maiorQtdOcorrencias) {
                 maisComum = letra;
@@ -166,8 +135,8 @@ public class Vigenere {
         return maisComum;
     }
 
-    private static void leituraArquivo() throws IOException {
-        File f = new File("files/cipher1.txt");
+    private static void leituraArquivo(String filename) throws IOException {
+        File f = new File("files/"  + filename);
         BufferedReader in = new BufferedReader(new FileReader(f));
         String st = in.readLine();
         textoCifrado = new String[st.length()];
@@ -177,10 +146,11 @@ public class Vigenere {
         }
     }
 
-    private static String descriptografar(String chave) {
+    private static String decriptografar(String chave) {
         long inicio = System.currentTimeMillis();
         String descriptografado = "";
         int indexChave = 0;
+
         for (String l : textoCifrado) {
             if (indexChave == chave.length()) indexChave = 0;
 
@@ -189,7 +159,6 @@ public class Vigenere {
             if (letraDescriptografada < 0) {
                 letraDescriptografada += letras.length;
             }
-
             descriptografado = descriptografado.concat(letras[letraDescriptografada]);
             indexChave++;
         }
@@ -200,7 +169,7 @@ public class Vigenere {
     }
 
     private static void escreverTexto(String texto) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new FileWriter("descriptografia.txt"));
+        BufferedWriter writer = new BufferedWriter(new FileWriter("resultado.txt"));
         writer.write(texto);
         writer.close();
     }
