@@ -1,0 +1,7 @@
+all: Vigenere.class
+
+Vigenere.class: Vigenere.java
+                @javac Vigenere.java
+
+clean:
+    @rm -f *.class *~

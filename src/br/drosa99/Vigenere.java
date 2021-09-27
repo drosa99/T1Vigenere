@@ -9,7 +9,9 @@ public class Vigenere {
     private static HashMap<String, Integer> letrasMap = new HashMap<>();
 
     private static final double icPt = 0.072723;
+    private static boolean isPt = true;
     private static String[] textoCifrado;
+    private static final double icEn = 0.067;
 
     //TODO fazer suporte para ingles
 
@@ -32,6 +34,7 @@ public class Vigenere {
 
 
         String chave = encontrarChave();
+        System.out.println(" Iniciada a decriptografia do texto utilizando a chave encontrada ..... ");
         String textoDescriptografado = decriptografar(chave);
         System.out.println(" O texto foi descriptografado com sucesso");
         try {
@@ -52,20 +55,26 @@ public class Vigenere {
         List<String> letrasFrequentes = new ArrayList<>();
         List<Integer> deslocamentos = new ArrayList<>();
 
-        int max = Math.min(textoCifrado.length, letras.length);
+        int max = Math.min(textoCifrado.length, 20);
         for (int i = tamanhoChave; i <= max; i++) {
             List<List<String>> substrings = buscarSubstrings(i);
 
             System.out.println("- Tamanho da chave: " + i);
 
-            //calcula IC para todas as substrings
+            //aqui calcula IC para todas as substrings
             for (int j = 0; j < substrings.size(); j++) {
                 double substringIc = buscarIC(substrings.get(j));
 //                System.out.println("  " + substringIc + " ==> " + j);
 //                System.out.println("  substringIC-icPT: " + (substringIc - icPt) + " ==> " + j);
-                double localDiff = substringIc - icPt;
-                if (localDiff <= 0.009 && localDiff > 0) { //TODO ver se isso ta certo
+                double diffPt = substringIc - icPt;
+                if (diffPt <= 0.009 && diffPt > 0) {
                     tamanhoChave = i;
+                    break;
+                }
+                double diffEn = substringIc - icEn;
+                if (diffEn <= 0.009 && diffEn > 0) {
+                    tamanhoChave = i;
+                    isPt = false;
                     break;
                 }
             }
@@ -77,7 +86,8 @@ public class Vigenere {
         for (int i = 0; i < substringsFinal.size(); i++) {
             String letraMaisFrequente = buscarLetraMaisFrequente(substringsFinal.get(i));
             letrasFrequentes.add(letraMaisFrequente);
-            int diff = letrasMap.get(letraMaisFrequente) - letrasMap.get("a");
+            String letraMaisFrequenteLingua = isPt ? "a" : "e";
+            int diff = letrasMap.get(letraMaisFrequente) - letrasMap.get(letraMaisFrequenteLingua);
             if (diff < 0) {
                 diff += 26;
             }
